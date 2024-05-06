@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="icon">
+  <title>the sokopond</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,600,0,0" />
+  <datalist id="datalist_art_directories">
+    <option label="art/pond" value="art/pond">
+    <option label="art/warehouse" value="art/warehouse">
+    <option label="art/baba" value="art/baba">
+  </datalist>
+</head>
+<body>
+  <table id="display"></table>
+  <h2 id="subtitle_text"></h2>
+  <div id="editor_toolbox" mode="edit"> <!-- only available in editor campaigns -->
+    <div id="editor_palettes">
+      <div id="editor_toolbox_bottom"></div>
+      <div id="editor_toolbox_top"></div>
+    </div>
+    <button id="editor_mode_button" class="icon big" onclick="swap_editor_mode();" style="bottom: 2rem; left: 2rem;">edit</button>
+    <div id="editor_errors_list" class="errors_list"></div>
+    <div id="editor_helper_buttons">
+      <!--<button class="icon" style="position: fixed; bottom: 3rem; left: 7rem;" onclick="navigator.clipboard.writeText(generate_level_data()); alert('Copied level data to your clipboard!')">save</button>-->
+      <button class="icon big" onclick="navigator.clipboard.writeText(generate_level_data()); alert('Copied level data to your clipboard!');" style="bottom: 7rem; left: 2rem;">save</button>
+      <div style="width: 4rem; position: fixed; bottom: 13.5rem; left: 2rem; text-align: center; font-size: 1rem;">go to room</div>
+      <button class="icon" style="position: fixed; bottom: 12rem; left: 2rem;" onclick="room_transition(loaded_room_index - 1, 'right');">west</button>
+      <button class="icon" style="position: fixed; bottom: 12rem; left: 4rem;" onclick="room_transition(loaded_room_index + 1, 'left');">east</button>
+      <div style="width: 4rem; position: fixed; bottom: 17.5rem; left: 2rem; text-align: center; font-size: 1rem;">new room</div>
+      <button class="icon" style="position: fixed; bottom: 16rem; left: 2rem;" onclick="editor_insert_new_room(loaded_room_index - 1);">west</button>
+      <button class="icon" style="position: fixed; bottom: 16rem; left: 4rem;" onclick="editor_insert_new_room(loaded_room_index + 1);">east</button>
+      <div style="width: 4rem; position: fixed; bottom: 21.5rem; left: 2rem; text-align: center; font-size: 1rem;">move room</div>
+      <button class="icon" style="position: fixed; bottom: 20rem; left: 2rem;" onclick="swap_rooms(loaded_room_index, loaded_room_index - 1);">west</button>
+      <button class="icon" style="position: fixed; bottom: 20rem; left: 4rem;" onclick="swap_rooms(loaded_room_index, loaded_room_index + 1);">east</button>
+      <!--<button class="icon" style="position: fixed; bottom: 3rem; left: 13rem;" onclick="all_rooms.push({data_bottom: '.....|.....|<...>|.....|.....', data_top: '.....|.....|.....|.....|.....'}); room_transition(all_rooms.length-1);">add_box</button>-->
+    </div>
+    <div id="editor_metadata">
+      <h2>level pack metadata</h2>
+      <p>art directory</p>
+      <input type="text" placeholder="art/pond" list="datalist_art_directories" tier="campaign" key="art_directory" onchange="editor_set_metadata(this)">
+      <p>author</p>
+      <input type="text" tier="campaign" key="author" onchange="editor_set_metadata(this)">
+      <p>title</p>
+      <input type="text" tier="campaign" key="title" onchange="editor_set_metadata(this)">
+      <p>completion message</p>
+      <input type="text" tier="campaign" key="completion_message" onchange="editor_set_metadata(this)">
+      <h2>room metadata</h2>
+      <p>art directory</p>
+      <input type="text" placeholder="art/pond" list="datalist_art_directories" tier="room" key="art_directory" onchange="editor_set_metadata(this)">
+      <p>level caption</p>
+      <input type="text" tier="room" key="extra_text" onchange="editor_set_metadata(this)">
+    </div>
+  </div>
+  <article id="main_menu">
+    <h1>the sokopond</h1>
+    <p>the sokopond is currently under <u>major</u> reconstruction! Once these changes are implemented, this old version will be available at astronomy487.github.io/sokopond/old. But that might be months away [currently May 6 2024].</p>
+    <div class="pond" onclick="start_game(this.querySelector('pre').innerText);" style="--accent: #F4B41B;">
+      <img src="art/pond/duckieright.png">
+      <h2><b>About the sokopond</b> A playable introduction to this project, my goals in creating it, and how you can interact with it</h2>
+<pre>
+author: @astronomy487
+
+.!!@!!#|!....@.|<.....!|!!.!..>|#!!.!!@
+.......|.......|.......|.......|.......
+extra_text: This is &lt;b>the sokopond&lt;/b>! It's a 2D puzzle engine for &lt;a href="https://en.wikipedia.org/wiki/Sokoban" target="_blank">sokoban&lt;/a>-like games set on discretized 2D grids.
+
+...!!@@.|..@.@..!|.@.1...@|@..@...@|@....@4>|!!1@!.@!|<...!!..|!@!@....
+........|........|........|.....1..|..1.....|........|........|........
+extra_text: The boxes are fish! You have to return them to their homes to open the gate on the right!
+
+..!!@@...|@@....@!!|<....222@|!......!@|.!.....5>|#.@@@!!@!
+.........|.........|..222....|.........|.........|.........
+extra_text: This engine has tiny fish which are so tiny you can push several of them at once.
+
+.!!@@!.|@.....!|<.....>|!.....@|.!@!!@.
+.......|..$....|.......|....$..|.......
+extra_text: It has bread crumbs, which you MUST eat before advancing to the next room.
+
+.@@!!@.|@..1..!|<....4>|@..1..@|.!@!!@.|!..1..@|<....4>|!..1..!|.@!@!!.
+.......|.......|..11...|.......|.......|.......|..11...|.......|.......
+extra_text: It can also manage several player agents at once! Players are spawned at every entrance as a room loads.
+
+.!@@!!.|!.....!|<.....>|@.....@|.!@@!@.
+.......|.......|..1?1..|.......|.......
+extra_text: Or even a non-player agent... It just wanders though. But she can push boxes
+
+.@!..@!!.|!..!@..1@|<..###..!|@..###..@|@..@!!@@.|.@.$$$.1@|@..@@@!!@|!.....4.>|.@..@..@!|..!!.@@..
+.........|.........|.......1.|.........|.........|......1..|.........|.........|.........|.........
+extra_text: Short cattails grow when you walk over them.
+
+....2.|.XXXXX|@x.x.@|<..@.@|@@.x.@|..@@5>|....@@
+......|......|..2...|....2.|......|......|......
+extra_text: Whirlpools kill you when you walk over them! Baby whirlpools become whirlpools when disturbed.
+
+.i456$.|..123#.|.....!.|.......|.......|.......|@@@@@@@|<.[...>|@@@@@@@
+.......|.......|..123..|.......|.......|.......|.......|....$..|.......
+extra_text: Level packs can use custom reskins, including your own reskins (as long as you can host the files lol)&lt;br>This one is called &lt;b>art/warehouse&lt;/b>
+art_directory: art/warehouse
+
+.i456$.|..123#.|.....!.|.......|.......|.......|@@@@@@@|<.[...>|@@@@@@@
+.......|.......|..123..|.......|.......|.......|.......|....$..|.......
+extra_text: Here is the default skin &lt;b>art/pond&lt;/b>
+art_directory: art/pond
+
+.i456$.|..123#.|.....!.|.......|.......|.......|@@@@@@@|<.[...>|@@@@@@@
+.......|.......|..123..|.......|.......|.......|.......|....$..|.......
+extra_text: Here is the skin &lt;b>art/baba&lt;/b> based on Baba is You (beloved game)
+art_directory: art/baba
+
+<..............|..........iii..|..........iii..|.@.!!..47......|.@.##..58...2..|.@.##..69...2..|.@.$$.......2..|..3......11....|..3......[[[...|.........[[[..>
+...............|...............|...............|...............|............2..|............2..|............2..|..3......11....|....3..........|...............
+extra_text: heres a debug room full of all the things
+</pre>
+    </div>
+    <!--<div class="pond" onclick="start_game(this.querySelector('pre').innerText);" style="--accent: #96B434;">
+      <img src="art/pond/lilypad.png">
+      <h2><b>The Pond</b> A straightforward Sokoban level pack</h2>
+<pre>
+author: @astronomy487
+
+#!!!!@.|@.....@|!....4>|!..11@@|!@!!!.#
+.......|.......|.~11...|.......|.......
+
+@@@@.##|<...@!@|@...4.>|@.!@@!!|!1...!#|.!@1.@#|#!....!|!.....@|#!..@@.|.#@!.#.
+.......|.......|..1....|.......|.......|.......|.......|....1..|.......|.......
+</pre>
+    </div>-->
+    <div class="pond" onclick="swap_to_article('level_editor_menu');" style="--accent: #F2A9F3;">
+      <img src="art/pond/jellyfish.png">
+      <h2><b>level editor</b> Desgin and test a level pack</h2>
+    </div>
+    <div class="pond" onclick="swap_to_article('campaign_input_menu');" style="--accent: #F4437F;">
+      <img src="art/pond/fish.png">
+      <h2><b>play level</b> Play a custom level pack</h2>
+    </div>
+    <div class="pond" onclick="swap_to_article('documentation');" style="--accent: #854A26;">
+      <img src="art/pond/cattail.png">
+      <h2><b>settings</b> User settings and documentation</h2>
+    </div>
+  </article>
+  <article id="campaign_input_menu" style="--accent: #F4437F;" long>
+    <button onclick="swap_to_article('main_menu');">to main menu</button>
+    <h1>play level</h1>
+    <textarea id="campaign_input_textarea" placeholder="Put level data here" spellcheck="false" oninput="start_game(this.value, true, '#campaign_input_errors_list');" onpaste="start_game(this.value, true, '#campaign_input_errors_list');"></textarea>
+    <p class="errors_list" id="campaign_input_errors_list"></p>
+    <button onclick="start_game(campaign_input_textarea.value, false, '#campaign_input_errors_list');">Play this level</button>
+    <p>Here are some other levels:</p>
+    <div class="pond" onclick="start_game(this.querySelector('pre').innerText);" style="--accent: #96B434;">
+      <img src="art/pond/lilypad.png">
+      <h2><b>better together</b> a two-agent campaign</h2>
+      <pre>author: @astronomy487
+
+#@@@!!@@!|<...@1.4>|@.......>|@...@...@|<...@..1@|@..!@!!@#|.@!!@@.#.
+.........|.........|.........|...1.....|..1......|.........|.........</pre>
+    </div>
+  </article>
+  <article id="level_editor_menu" style="--accent: #F2A9F3;" long>
+    <button onclick="swap_to_article('main_menu');">to main menu</button>
+    <h1>level editor</h1>
+    <textarea id="level_editor_input_textarea" placeholder="Put level data here" spellcheck="false" oninput="start_game(this.value, true, '#level_editor_input_errors_list');" onpaste="start_game(this.value, true, '#level_editor_input_errors_list');"></textarea>
+    <p class="errors_list" id="level_editor_input_errors_list"></p>
+    <button onclick="start_game('editor: true\n' + level_editor_input_textarea.value, false, '#level_editor_input_errors_list');">Edit this level</button>
+    <div class="pond" onclick="start_game(this.querySelector('pre').innerText);" style="--accent: #F2A9F3;">
+      <img src="art/pond/jellyfishdoorclosed.png">
+      <h2><b>new level pack</b> Create a new level pack</h2>
+      <pre>editor: true
+
+.....|.....|<...>|.....|.....
+.....|.....|.....|.....|.....</pre>
+    </div>
+  </article>
+  <article id="documentation" style="--accent: #854A26;">
+    <button onclick="swap_to_article('main_menu');">to main menu</button>
+    <h1>settings</h1>
+    <p style="margin-bottom: 0.25rem;"><b>art directory</b> The folder referenced for tile sprites. I've included three by default, but feel free to host your own! Level packs can override this.</p>
+    <input type="text" placeholder="art/pond" list="datalist_art_directories" tier="user" key="art_directory" onchange="set_user_setting(this)">
+    <p>Here are a few articles about how this project works from a more technical perspective, for the curious:</p>
+    <div class="pond" onclick="swap_to_article('documentation_level');" style="--accent: #F4437F;">
+      <img src="art/pond/fish.png">
+      <h2><b>level format</b> Information about the way levels are stored and parsed</h2>
+    </div>
+    <div class="pond" onclick="swap_to_article('documentation_versions');" style="--accent: #F2A9F3;">
+      <img src="art/pond/jellyfish.png">
+      <h2><b>version changes</b> A timeline of development, how the project has changed, and a feature wishlist.</h2>
+    </div>
+  </article>
+  <script src="script.js"></script>
+  <article id="documentation_level" style="--accent: #F4437F;" long>
+    <button onclick="swap_to_article('documentation');">to documentation</button>
+    <h1>level format</h1>
+    <p style="padding: 0.5rem; border: solid 0.125rem white;">As of right now, you have to read this page in order to make your own level packs. That sucks! I want to make a better level editor that is responsive, can load/save whole level packs, and can handle room metadata.</p>
+    <h2>paragraphs</h2>
+    <p>Level data is stored as plaintext. The text is copied into the <a onclick="swap_to_article('campaign_input_menu')">Play Level page</a> to play the level it stores. The data is broken into paragraphs separated by two newlines. The first paragraph is for metadata. All other paragraphs store a room.</p>
+    <p>Here are the first four paragraphs of the introductory level pack's level data (metadata + 3 rooms):</p>
+    <pre class="code">author: @astronomy487
+
+.!!@!!#|!....@.|!.....!|#!.!..>|.!!.!!@
+.......|.......|..~....|.......|.......
+extra_text: This is &lt;b>the sokopond&lt;/b>! It's a 2D puzzle engine for &lt;a href="https://en.wikipedia.org/wiki/Sokoban" target="_blank">sokoban&lt;/a>-like games set on discretized 2D grids.
+
+...!!@@.|..@.@..!|.@.1...@|@..@...@|@....@4>|!!1@!.@!|<...!!..|!@!@....
+........|........|........|.....1..|..1.....|........|........|........
+extra_text: The boxes are fish! You have to return them to their homes to open the gate on the right!
+
+..!!@@...|@@....@!!|<....222@|!......!@|.!.....5>|#.@@@!!@!
+.........|.........|..222....|.........|.........|.........
+extra_text: This engine has tiny fish which are so tiny you can push several of them at once.</pre>
+    <h2>level pack metadata</h2>
+    <p>Here is the level pack metadata you could include in the first paragraph:</p>
+    <table>
+      <tr><th>attribute</th><th>purpose</th></tr>
+      <tr><td>author</td><td>Currently unused.</td></tr>
+      <tr><td>title</td><td>Currently unused.</td></tr>
+      <tr><td>completion_message</td><td>A brief message to be displayed at the end of the level pack. Can include HTML, go crazy. Defaults to <code>"&lt;b>level pack complete!&lt;/b> good job"</code></td></tr>
+      <tr><td>art_directory</td><td>Changes the directory for tile assets. The provided directories are <code>art/pond</code> (default), <code>art/warehouse</code>, and <code>art/baba</code>. If you can host files somewhere, you can use them as a reskin.</td></tr>
+    </table>
+    <h2>layers and their states</h2>
+    <p>sokopond rooms are split into two layers, the top and bottom. Each cell has a state for both layers (including an 'empty' state). In the level data for a room, the bottom layer is written on line 1 and the top layer on line 2. Every possible state corresponds with a single ASCII character (list below). Each row of each layer is separated by a vertical bar.</p>
+    <p>For example, an empty 3x3 grid with a fish and fish home in the center would appear like this:</p>
+    <pre class="code">...|.1.|...
+  ...|.1.|...</pre>
+    <p>Here are all the bottom layer states.</p>
+    <table id="docs_bottom_layer_table">
+      <tr><th>image</th><th>character</th><th>attributes</th></tr>
+    </table>
+    <p>Here are all the top layer states.</p>
+    <table id="docs_top_layer_table">
+      <tr><th>image</th><th>character</th><th>attributes</th></tr>
+    </table>
+    <p>The behavior of a state on either layer is fully defined by its attributes (e.g. any tile with <code>stop: true</code> will stop a player from walking).</p>
+    <script>
+      for ([catalogue, table_id] of [[arch_bottom, "#docs_bottom_layer_table"], [arch_top, "#docs_top_layer_table"]]) {
+        for (ch of Object.keys(catalogue)) {
+          let tr = document.querySelector(table_id).appendChild(document.createElement("tr"));
+          let td0 = tr.appendChild(document.createElement("td"));
+          let td0_img = td0.appendChild(document.createElement("img"));
+          td0_img.src = full_image_url(catalogue[ch].img);
+          td0_img.title = catalogue[ch].img;
+          let td1 = tr.appendChild(document.createElement("td"));
+          td1.innerText = ch;
+          td1.style.fontFamily = "monospace";
+          let td2 = tr.appendChild(document.createElement("td"));
+          for (attribute of Object.keys(catalogue[ch])) if (!["img", "character"].includes(attribute)) td2.innerText += attribute + ": " + JSON.stringify(catalogue[ch][attribute]) + ", ";
+          if (td2.innerText) td2.innerText = td2.innerText.slice(0, -2);
+          else td2.innerHTML = "<span style=\"color: #ffffff66;\">no attributes</span>"
+        }
+      }
+    </script>
+    <h2>room metadata</h2>
+    <p>Lines three and on in each room paragraph describe other metadata for the room, all of which is optional. Some of these fields can also be applied to the whole level pack. Here are the attributes that can be used:</p>
+    <table>
+      <tr><th>attribute</th><th>purpose</th></tr>
+      <tr><td>extra_text</td><td>A caption displayed at the bottom by the room counter. This can include HTML markup!</td></tr>
+      <tr><td>art_directory</td><td>Same function as the level pack metadata. Only applies for a single room.</td></tr>
+    </table>
+  </article>
+  <article id="documentation_versions" style="--accent: #F2A9F3;" long>
+    <button onclick="swap_to_article('documentation');">to documentation</button>
+    <h1>version changes</h1>
+    <p>No earlier version of this project is archived!</p>
+    <h2>beta</h2>
+    <p><b>August 4, 2023</b> Miscellaneous improvements and actually making the project public on my website!</p>
+    <h2>alpha</h2>
+    <p><b>July 30, 2023</b> Created the functions necessary for saving a level to clipboard from the editor. Added logistics for moving rooms, creating new rooms, and moving among rooms. Added the level editor interface for all the metadata. Added whirlpools! Added a settings system, which currently only has <code>art_directory</code> but maybe it will handle more one day. The main game loop is actually here now! Other than poor coding practices and sketchy editor room UI, this project is essentially ready to be played. The thought of needing to translate this project haunts me</p>
+    <p><b>July 29, 2023</b> Setup the two modes for the level editor which is more seamless than constantly needing to save your work. It makes sense to enter play mode now. Also implemented the whole error check system, and it's called at all the appropriate times! Reworked entrance/exit requirements to always need to match, being loosey goosey about it was a bad idea.</p>
+    <p><b>July 27, 2023</b> New dynamic level editing system using the <code>editor</code> attribute in the level pack metadata. If enabled, there's a toolbox and helper functions to dynamically edit <code>room_bottom</code> and <code>room_top</code>, which are manually saved into <code>data_bottom</code> and <code>data_top</code> (the source for level initialization / resets). In theory any level pack could enable this flag lol</p>
+    <p><b>July 26, 2023</b> Many updates to the UI system to accomodate several articles so that the documentation and level editor will be able to fit into the main webpage. This means they will be able to take advantage of more of the same code (automatically generated documentation for tile states, live level editor).</p>
+    <p><b>July 22, 2023</b> It's themed around a pond now! How cute. <img src="art/pond/duckieright.png"></p>
+    <p><b>July 21, 2023</b> I reworked the older exploration systems to make level creation more straightforward and engaging. I abandoned the collectable system (which felt goofy) and exploration became linear level succession. Defining directional room exits in the level data for each room instead of assuming linear succession feels unnecessarily complicated for now.</p>
+    <h2>demo</h2>
+    <p><b>June 23, 2023</b> I worked on the first level editor and started generalizing the behavior of tile definitions into very useful attributes. The vision here started to move towards an experience that champions Sokoban level creation (whereas previously it was just a campaign I created).</p>
+    <p><b>May 8, 2023</b> Started working on a new and better Sokoban engine about exploration via Sokoban mechanics. It has non-linear large-world room transitions (i.e. rooms can branch out however they like). Includes a collectible gem system. <a target="_blank" href="https://twitter.com/astronomy487/status/1672102806616961025">Video</a></p>
+    <p><b>January 2, 2021</b> Getting better at JS was my New Year's resolution for 2021. A sokoban engine was my very first large project in JS! That's a different project but it still felt right to put here</p>
+    <h2>wishlist</h2>
+    <p>Here are the broad features I want to implement:</p>
+    <ul>
+      <li>A dynamic level editor! Swap between an edit mode (like current level editor) but that operates on the same display table as gameplay. This way, it can save its state and become playable.</li>
+      <li>Such a level editor should be able to store several rooms and manage their metadata and assemble them into level data text.</li>
+      <li>Be able to exit a level pack early</li>
+      <li>Clean up the image name system and make sure all my packs have all their images</li>
+      <li>Preload images and audio as a level pack starts</li>
+      <li>Clean the <code>sfx</code> function lolol</li>
+      <li>Let campaigns define new tile types using attributes. Maybe of questionable utility because if there's an interesting attribute I'll already have a tile for it but maybe</li>
+    </ul>
+  </article>
+  <script>
+    if (url_parameters.level) {
+      in_transition = false;
+      start_game(atob(url_parameters.level));
+    } else {
+      document.querySelector("article#main_menu").style.animation = "1s title_enter";
+      document.querySelector("article#main_menu").style.display = "block";
+      setTimeout(function(){
+        in_transition = false;
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
